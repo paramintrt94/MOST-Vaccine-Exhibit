@@ -1,8 +1,21 @@
+import RPi.GPIO as GPIO
+from time import sleep
 from pkglib.Cell import Cell
 from pkglib.Sensor import Sensor
 
 print("Starting Vaccine Exhibit")
 
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(8, GPIO.OUT, initial = GPIO.LOW)
+GPIO.setup(10, GPIO.IN)
+
+while True: # Run forever
+    if not (GPIO.input(10)):
+        GPIO.output(8, GPIO.HIGH) # Turn on                # Sleep for 1 second
+    else:
+        GPIO.output(8, GPIO.LOW)  # Turn off                # Sleep for 1 second
+    
 # initializing board
 # numCells		number of white blood cells on board
 # numPerGroup 	number of white blood cells per column
