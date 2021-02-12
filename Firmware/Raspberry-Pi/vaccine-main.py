@@ -1,21 +1,34 @@
 import RPi.GPIO as GPIO
+from gpiozero import LED
+from signal import pause
 from time import sleep
 from pkglib.Cell import Cell
 from pkglib.Sensor import Sensor
 
 print("Starting Vaccine Exhibit")
 
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(8, GPIO.OUT, initial = GPIO.LOW)
-GPIO.setup(10, GPIO.IN)
+testLED = LED(7)
+testLED.on()
+sleep(1000)
+green1 = LED(16)
+green2 = LED(15)
+green3 = LED(14)
+red1 = LED(11)
+red2 = LED(12)
+red3 = LED(13)
+green4 = LED(33)
+green5 = LED(35)
+green6 = LED(36)
+red4 = LED(37)
+red5 = LED(38)
+red6 = LED(39)
 
-while True: # Run forever
-    if not (GPIO.input(10)):
-        GPIO.output(8, GPIO.HIGH) # Turn on                # Sleep for 1 second
-    else:
-        GPIO.output(8, GPIO.LOW)  # Turn off                # Sleep for 1 second
-    
+red1.on()
+sleep(0.5)
+green1.on()
+red1.off()
+sleep(0.5)
+
 # initializing board
 # numCells		number of white blood cells on board
 # numPerGroup 	number of white blood cells per column
