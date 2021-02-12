@@ -1,65 +1,40 @@
-import RPi.GPIO as GPIO
-from gpiozero import LED
+# Importing libraries used to program this script
+from gpiozero import RGBLED
+from colorzero import Color
 from signal import pause
 from time import sleep
-from pkglib.Cell import Cell
-from pkglib.Sensor import Sensor
 
+# Initializing RPI board and I2C ports
+import board
+import busio
+import adafruit_tcs34725
+i2c = busio.I2C(board.SCL, board.SDA)
+sensor = adafruit_tcs34725.TCS34725(i2c)
+
+# Specifying RGB Pins
+led1 = RGBLED(5,6,13)
+led2 = RGBLED(19,26,12)
+led3 = RGBLED(16,20,21)
+
+def colorCheck(rgb_bytes):
+    if (rgb_bytes[0] > 90 and (rgb_bytes[1]+rgb_bytes[2])<10):
+        print("Detected virus piece")
+        return Color("red")
+    elif ((40 < rgb_bytes[1] < 50) and (rgb_bytes[0] < 5) and (0 < rgb_bytes[2] < 30)):
+        print("Detected deactivated virus vaccine")
+        return Color("green")
+    elif ((10 < rgb_bytes[0] < 16) and (20 < rgb_bytes[1] < 25) and (10 < rgb_bytes[2] < 20)):
+        print("Detected mRNA messenger piece")
+        return Color("green")
+    else:
+        print("Not detecting anything or you tryna fool me?...")
+        return Color("white")
+    
 print("Starting Vaccine Exhibit")
 
-testLED = LED(7)
-testLED.on()
-sleep(1000)
-green1 = LED(16)
-green2 = LED(15)
-green3 = LED(14)
-red1 = LED(11)
-red2 = LED(12)
-red3 = LED(13)
-green4 = LED(33)
-green5 = LED(35)
-green6 = LED(36)
-red4 = LED(37)
-red5 = LED(38)
-red6 = LED(39)
+while True:
+    color = sensor.color_rgb_bytes
+    print(color)
+    led1.color = colorCheck(color)
+    sleep(1)
 
-red1.on()
-sleep(0.5)
-green1.on()
-red1.off()
-sleep(0.5)
-
-# initializing board
-# numCells		number of white blood cells on board
-# numPerGroup 	number of white blood cells per column
-# numSensors	how many RGB sensors you will be using (opt autocalculated)
-numCells = 6
-numPerPair = 2
-#numSensors = numCells/numPerPair
-numSensors = 3
-
-#list of all the white blood cells on board (might change depending on library)
-cellList = []
-
-#list of all the sensors
-sensorList = []
-
-#populate CellList (initialize WBC status and LED lights)
-for i in range(numCells):
-	cellList.append(Cell("healthy"))
-
-print("\nCELL STATUS")
-for index,cell in enumerate(cellList):
-	print("Cell #"+str(index)+":\n"+cell.printInfo())
-
-for i in range(numSensors):
-	sensorList.append(Sensor())
-
-print("\nSENSOR READINGS")
-for index,sensor in enumerate(sensorList):
-	print("Sensor #"+str(index)+" is reading "+sensor.getColor())
-
-print("\nTEST SCENARIO")
-#Test Scenarios
-print("1.Placing infected virus on board in 2nd column")
-sensorList[1].setColor("red")
