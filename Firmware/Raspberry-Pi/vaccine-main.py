@@ -5,6 +5,9 @@ from time import sleep
 from cell import Cell
 from signal import pause
 
+# Logger
+import logging
+
 # Initializing RPI board and I2C ports
 import board
 import busio
@@ -50,6 +53,7 @@ while True:
     if(button.is_pressed):
         for cell in cellArray:
             print(cell)
+            logging.debug("" + cell)
             cell.updateStatus(sensor)           # uncomment for production
             #sleep(3)                           # uncomment for single sensor mode
             #cell.updateStatus(sensor, True)    # uncomment for debugging
