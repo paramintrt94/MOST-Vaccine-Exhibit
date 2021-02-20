@@ -11,10 +11,17 @@ import logging
 # Initializing RPI board and I2C ports
 import board
 import busio
-import adafruit_tcs34725
+import adafruit_tcs34725    # RGB Sensors
+import adafruit_tca9548a    # Multiplexer
 i2c = busio.I2C(board.SCL, board.SDA)
-print(i2c)
-sensor = adafruit_tcs34725.TCS34725(i2c)
+mpx = adafruit_tca9548a.TCA9548A(i2c) # multiplexer
+s1 = adafruit_tcs34725.TCS34725(mpx[0])
+s2 = adafruit_tcs34725.TCS34725(mpx[1])
+s3 = adafruit_tcs34725.TCS34725(mpx[3])
+sarray = [s1,s2,s3]
+
+
+#sensor = adafruit_tcs34725.TCS34725(i2c)
 
 # Specifying RGB Pins using GPIO#   # RGB PIN EQUIVALENT
 led1 = RGBLED(5,6,13)               # RGB LED1 PINS: RED PIN 29, GREEN PIN 31, BLUE PIN 33
@@ -24,11 +31,12 @@ ledArray = [led1,led2,led3]
 ledColorCycle = [(1,0,0),(0,1,0),(0,0,1)]
 
 # Toggle Switch
-button = Button(4)
+# ~ button = Button(4)
 
 # Create Array of "Cells"
 number_of_groups = 3
 cellArray = []
+
 for i in range(number_of_groups):
     cellArray.append(Cell(ledArray[i]))
 
@@ -48,16 +56,24 @@ def cleanup():
 
 print("Starting Vaccine Exhibit...")
 startupCheck()
-
+    
 while True:
-    if(button.is_pressed):
-        for cell in cellArray:
-            print(cell)
-            logging.debug("" + cell)
-            cell.updateStatus(sensor)           # uncomment for production
-            #sleep(3)                           # uncomment for single sensor mode
-            #cell.updateStatus(sensor, True)    # uncomment for debugging
-    else:
-        cleanup()
-        sleep(5)
+    for i, cell in enumerate(cellArray):
+        # ~ print(cell)
+        cell.updateStatus(sarray[i])           # uncomment for production
+        # ~ sleep(1)                           # uncomment for single sensor mode
+        #cell.updateStatus(sensor, True)    # uncomment for debugging
+    sleep(1)
+    
+# ~ while True:
+    # ~ if(button.is_pressed):
+        # ~ for cell in cellArray:
+            # ~ print(cell)
+            # ~ logging.debug("" + cell)
+            # ~ cell.updateStatus(sensor)           # uncomment for production
+            # ~ #sleep(3)                           # uncomment for single sensor mode
+            # ~ #cell.updateStatus(sensor, True)    # uncomment for debugging
+    # ~ else:
+        # ~ cleanup()
+        # ~ sleep(5)
     #sleep(3)
