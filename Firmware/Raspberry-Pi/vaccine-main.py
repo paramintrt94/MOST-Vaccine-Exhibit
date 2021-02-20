@@ -13,12 +13,15 @@ import board
 import busio
 import adafruit_tcs34725    # RGB Sensors
 import adafruit_tca9548a    # Multiplexer
+
 i2c = busio.I2C(board.SCL, board.SDA)
 mpx = adafruit_tca9548a.TCA9548A(i2c) # multiplexer
-s1 = adafruit_tcs34725.TCS34725(mpx[0])
-s2 = adafruit_tcs34725.TCS34725(mpx[1])
-s3 = adafruit_tcs34725.TCS34725(mpx[3])
-sarray = [s1,s2,s3]
+
+# Specify which channels on the TCA9548A multiplexer are being used
+mpx_channels = [3,4,5]
+sensorArray = []
+for mpx_channel in mpx_channels:
+    sensorArray.append(adafruit_tcs34725.TCS34725(mpx[mpx_channel]))
 
 
 #sensor = adafruit_tcs34725.TCS34725(i2c)
@@ -60,7 +63,7 @@ startupCheck()
 while True:
     for i, cell in enumerate(cellArray):
         # ~ print(cell)
-        cell.updateStatus(sarray[i])           # uncomment for production
+        cell.updateStatus(sensorArray[i], True)           # uncomment for production
         # ~ sleep(1)                           # uncomment for single sensor mode
         #cell.updateStatus(sensor, True)    # uncomment for debugging
     sleep(1)

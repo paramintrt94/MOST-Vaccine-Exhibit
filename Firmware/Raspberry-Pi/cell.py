@@ -46,17 +46,17 @@ class Cell:
         if debug:
             # this will print the rgb sensor color reading in (r,g,b) values
             print(sensor.color_rgb_bytes)
-        if (sensor.color_rgb_bytes[0] > 90 and (sensor.color_rgb_bytes[1]+sensor.color_rgb_bytes[2])<10): #checking for red piece
+        if ((34 < sensor.color_rgb_bytes[0] < 45) and (5 < sensor.color_rgb_bytes[1] < 15) and (5 < sensor.color_rgb_bytes[2] < 15)) : #checking for red piece
             if not self.prevColor == "red" and debug:
                 print("Detected virus piece")
                 self.prevColor = "red"
             return "red"
-        elif ((40 < sensor.color_rgb_bytes[1] < 50) and (sensor.color_rgb_bytes[0] < 5) and (0 < sensor.color_rgb_bytes[2] < 30)): #checking for green piece
+        elif ((sensor.color_rgb_bytes[0] <= 5) and (23 < sensor.color_rgb_bytes[1] < 30) and (15 < sensor.color_rgb_bytes[2] < 30)): #checking for green piece
             if not self.prevColor == "green" and debug:
                 print("Detected deactivated virus vaccine")
                 self.prevColor = "green"
             return "green"
-        elif ((5 < sensor.color_rgb_bytes[0] < 16) and (20 < sensor.color_rgb_bytes[1] < 25) and (10 < sensor.color_rgb_bytes[2] < 22)): #checking for white piece
+        elif ((6 < sensor.color_rgb_bytes [0] < 14) and (15 < sensor.color_rgb_bytes[1] < 25) and (13 < sensor.color_rgb_bytes[2] < 24)): #checking for white piece
             if not self.prevColor == "white" and debug:
                 print("Detected mRNA messenger piece")
                 self.prevColor = "white"
