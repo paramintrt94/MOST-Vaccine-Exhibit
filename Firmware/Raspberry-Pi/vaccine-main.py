@@ -30,7 +30,7 @@ led3 = RGBLED(16,20,21)             # RGB LED3 PINS: RED PIN 36, GREEN PIN 38, B
 ledArray = [led1,led2,led3]
 
 # Toggle Switch
-# ~ button = Button(4)
+button = Button(4)
 
 # Create Array of "Cells"
 number_of_groups = 3
@@ -58,19 +58,9 @@ startupCheck()
 debug = False    #set to True to debug
 
 while True:
-    for i, cell in enumerate(cellArray):
-        cell.updateStatus(sensorArray[i], debug)
-    sleep(1) if debug else None
-    
-# ~ while True:
-    # ~ if(button.is_pressed):
-        # ~ for cell in cellArray:
-            # ~ print(cell)
-            # ~ logging.debug("" + cell)
-            # ~ cell.updateStatus(sensor)           # uncomment for production
-            # ~ #sleep(3)                           # uncomment for single sensor mode
-            # ~ #cell.updateStatus(sensor, True)    # uncomment for debugging
-    # ~ else:
-        # ~ cleanup()
-        # ~ sleep(5)
-    #sleep(3)
+    if button.is_pressed:
+        for i, cell in enumerate(cellArray):
+            cell.updateStatus(sensorArray[i], debug)
+        sleep(1) if debug else None
+    else:
+        cleanup()

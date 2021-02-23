@@ -19,12 +19,32 @@ sensorArray = []
 
 ledTest = False
 mpxTest = False
-rgbSensorTest = False
+rgbSensorTest = True
 
 if mpxTest or rgbSensorTest:
     for mpx_channel in mpx_channels:
         sensorArray.append(adafruit_tcs34725.TCS34725(mpx[mpx_channel]))
         print("Initialized mpx channel",str(mpx_channel),)
+
+def getColorRange(trys):
+    currentTry = 0
+    sensorArray = []
+    reds = []
+    greens = []
+    blues = []
+    for mpx_channel in mpx_channels:
+        sensorArray.append(adafruit_tcs34725.TCS34725(mpx[mpx_channel]))
+    while currentTry < trys:
+        for sensor in sensorArray:
+            reds.append(sensor.color_rgb_bytes[0])
+            greens.append(sensor.color_rgb_bytes[1])
+            blues.append(sensor.color_rgb_bytes[2])
+        currentTry += 1
+    print("COLOR\tMIN\tMAX")
+    print("RED\t"+str(min(reds))+"\t"+str(max(reds)))
+    print("GREEN\t"+str(min(greens))+"\t"+str(max(greens)))
+    print("BLUE\t"+str(min(blues))+"\t"+str(max(blues)))
+            
 
 while ledTest or rgbSensorTest:
     if ledTest:
@@ -34,6 +54,9 @@ while ledTest or rgbSensorTest:
         print(sensorArray[0].color_rgb_bytes,"\t",sensorArray[1].color_rgb_bytes,"\t",sensorArray[2].color_rgb_bytes)
     sleep(0.5)
 
+def led_off():
+    for led in ledArray:
+        led.off()
 
-for led in ledArray:
-    led.off()
+led_off()
+# ~ getColorRange(50)
