@@ -7,7 +7,7 @@ class Cell:
     color_sensitivity = 2  # set color sensitivity (higher number allows higher variance in color reading)
     max_variation = 5 # set how much variation to allow
     certainty_level = 6  # set higher value to ignore more ambient lighting when no piece is placed
-    inoc_duration = 1 # set how long it takes to inoculate
+    inoc_duration = 2 # set how long it takes to inoculate
     immune_duration = 6  # set to how many seconds before immune reset
     exp_value = 0.1  # set how aggressive to fade color, lower value keeps green on longer
     k_value = math.log(1 / exp_value)
