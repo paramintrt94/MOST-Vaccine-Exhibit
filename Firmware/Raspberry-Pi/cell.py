@@ -7,7 +7,7 @@ class Cell:
     color_sensitivity = 2  # set color sensitivity (higher number allows higher variance in color reading)
     max_variation = 5 # set how much variation to allow
     certainty_level = 6  # set higher value to ignore more ambient lighting when no piece is placed
-    inoc_duration = 2 # set how long it takes to inoculate
+    inoc_duration = 2.5 # set how long it takes to inoculate
     immune_duration = 6  # set to how many seconds before immune reset
     exp_value = 0.1  # set how aggressive to fade color, lower value keeps green on longer
     k_value = math.log(1 / exp_value)
@@ -115,8 +115,7 @@ class Cell:
     def check_color(self, sensor, debug_level):
         # reads sensor color data and outputs color as string (red, green, white, invalid)
         sensor_color_rgb = sensor.color_rgb_bytes
-        print(str(sensor_color_rgb)+" [" + self.prev_color + "]\t", end="") if debug_level >= 2 else None  # print rgb sensor reading in (r,g,b) values
-
+        print(str(sensor_color_rgb)+" [" + self.prev_color + "]\t",end="") if debug_level >= 2 else None  # print rgb sensor reading in (r,g,b) values
         if self.is_consistent(sensor_color_rgb):
             # checking for red piece
             if (sensor_color_rgb[0] in self.red_limits[0]) and (
@@ -127,7 +126,6 @@ class Cell:
 
                 self.prev_color = "red"
                 return "red"
-
             # checking for green piece
             elif (sensor_color_rgb[0] in self.green_limits[0]) and (
                     sensor_color_rgb[1] in self.green_limits[1]) and (
@@ -136,7 +134,6 @@ class Cell:
                     self.idx) + " detected deactivated virus vaccine") if self.consistency_count == self.certainty_level and debug_level == 1 else None
                 self.prev_color = "green"
                 return "green"
-
             # checking for white piece
             elif (sensor_color_rgb[0] in self.white_limits[0]) and (
                     sensor_color_rgb[1] in self.white_limits[1]) and (
@@ -145,11 +142,9 @@ class Cell:
                     self.idx) + " detected mRNA messenger piece") if self.consistency_count == self.certainty_level and debug_level == 1 else None
                 self.prev_color = "white"
                 return "white"
-
             else:
                 self.prev_color = "invalid"
                 return "invalid"
-
         else:
             self.prev_color = "invalid"
             return "invalid"
