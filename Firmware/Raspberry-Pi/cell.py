@@ -4,9 +4,10 @@ from time import time
 import math
 
 class Cell:
-    color_sensitivity = 3  # set color sensitivity (higher number allows higher variance in color reading)
-    certainty_level = 8  # set higher value to ignore more ambient lighting when no piece is placed
-    innoc_duration = 0.1 # set how long it takes to innoculate
+    color_sensitivity = 2  # set color sensitivity (higher number allows higher variance in color reading)
+    max_variation = 5 # set how much variation to allow
+    certainty_level = 6  # set higher value to ignore more ambient lighting when no piece is placed
+    inoc_duration = 1 # set how long it takes to inoculate
     immune_duration = 6  # set to how many seconds before immune reset
     exp_value = 0.1  # set how aggressive to fade color, lower value keeps green on longer
     k_value = math.log(1 / exp_value)
@@ -23,6 +24,7 @@ class Cell:
     def __init__(self, led, idx):
         self.idx = idx
         self.status = "healthy"
+        self.prev_status = "healthy"
         self.led = led
         self.led.color = (0, 0, 0)
         self.last_immunized = -1
@@ -35,6 +37,7 @@ class Cell:
     def update_status(self, sensor, debug_level=0):
         # updates cell and LED color to respond to piece being placed on sensor
         color = self.check_color(sensor, debug_level)
+        self.prev_status = self.status
         if self.status == "healthy":
             None if self.led.is_lit else self.led.on()
             if color == "red":
@@ -42,32 +45,41 @@ class Cell:
                 self.status = "infected"
                 self.led.color = (1, 0, 0)
             elif color == "green" or color == "white":
-                print("Cell " + str(self.idx) + " is being innoculated.") if debug_level >= 1 else None
-                self.status = "innoculating"
+                print("Cell " + str(self.idx) + " is being inoculated.") if debug_level >= 1 else None
+                self.status = "inoculating"
                 self.last_immunized = time()
         elif self.status == "infected":
             if color == "green" or color == "white":
-                self.status = "innoculating"
+                self.status = "inoculating"
                 self.last_immunized = time()
-        elif self.status == "innoculating":
-            if color == "green" or color == "white":
+        elif self.status == "inoculating":
+            if color == "red":
+                # if virus piece is placed back on sensor while inoculating, cell reverts to being infected
+                self.last_immunized = -1
+                self.status = "infected"
+            elif color == "green" or color == "white":
+                # slowly fade to green while piece is still on sensor
                 elapsed_time = time() - self.last_immunized
-                elapsed_time_percent = elapsed_time / self.innoc_duration
+                elapsed_time_percent = elapsed_time / self.inoc_duration
                 if elapsed_time_percent >= 1:
                     print("Cell " + str(self.idx) + " is now immunized.") if debug_level >= 1 else None
                     self.status = "immune"
                     self.last_immunized = time()
                     self.led.color = (0, 1, 0)
                 else:
-                    current_led_red = self.led.value[0]
-                    current_led_blue = self.led.value[2]
-                    if current_led_red > 0:
-                        self.led.color = (1-elapsed_time_percent, 1, 0)
-                    elif current_led_blue > 0:
-                        self.led.color = (0, elapsed_time_percent, 1-elapsed_time_percent)
-            elif color == "red":
-                self.status = "infected"
-                self.led.color = (1,0,0)
+                    if self.prev_status == "healthy":
+                        self.led.color = (1-elapsed_time_percent, 1, 1-elapsed_time_percent)
+                    elif self.prev_status == "infected":
+                        self.led.color = (1-elapsed_time_percent, elapsed_time_percent, 0)
+            else:
+                # if piece was lifted off before being fully inoculated, cell will revert to previous status
+                self.status = self.prev_status
+                print("Cell " + str(
+                    self.idx) + " reverting back to "+self.prev_status) if debug_level >= 2 else None
+                if self.prev_status == "healthy":
+                    self.led.color = (1, 1, 1)
+                elif self.prev_status == "infected":
+                    self.led.color = (1, 0, 0)
 
         elif self.status == "immune":
             elapsed_time = time() - self.last_immunized
@@ -94,7 +106,7 @@ class Cell:
                 for idx in range(1, len(color_group)):
                     if color_group[idx] != color_group[idx-1]:
                         diff += 1
-            if diff <= 5:
+            if diff <= self.max_variation:
                 self.consistency_count += 1
                 return True
             else:

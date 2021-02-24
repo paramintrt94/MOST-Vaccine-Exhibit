@@ -1,6 +1,6 @@
 # Importing libraries used to program this script
 from gpiozero import RGBLED, Button
-from time import sleep
+from time import sleep, time
 from cell import Cell
 
 # Initializing RPI board and I2C ports
@@ -54,11 +54,14 @@ print("Starting Vaccine Exhibit...")
 startup_check()
 
 debug = 0  # set to debug level
+timed = 0
 
 while True:
     if button.is_pressed:
         for i, cell in enumerate(cell_array):
+            start_process_time = time()
             cell.update_status(sensor_array[i], debug)
+            print("Process took "+str(time()-start_process_time)+" seconds")
         sleep(1) if debug else None
     else:
         cleanup()
