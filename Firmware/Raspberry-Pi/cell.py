@@ -31,8 +31,7 @@ class Cell:
         self.prev_color = ""
         self.prev_color_readings = [[], [], []]  # [[list of prev red], [list of prev green], [list of prev blue]]
         self.consistency_count = 0
-
-    # end of init
+        # end of init
 
     def update_status(self, sensor, debug_level=0):
         # updates cell and LED color to respond to piece being placed on sensor
@@ -41,11 +40,11 @@ class Cell:
         if self.status == "healthy":
             None if self.led.is_lit else self.led.on()
             if color == "red":
-                print("Cell " + str(self.idx) + " is now infected.") if debug_level >= 1 else None
+                print("Cell " + str(self.idx) + " is now infected.") if debug_level == 1 else None
                 self.status = "infected"
                 self.led.color = (1, 0, 0)
             elif color == "green" or color == "white":
-                print("Cell " + str(self.idx) + " is being inoculated.") if debug_level >= 1 else None
+                print("Cell " + str(self.idx) + " is being inoculated.") if debug_level == 1 else None
                 self.status = "inoculating"
                 self.last_immunized = time()
         elif self.status == "infected":
@@ -62,7 +61,7 @@ class Cell:
                 elapsed_time = time() - self.last_immunized
                 elapsed_time_percent = elapsed_time / self.inoc_duration
                 if elapsed_time_percent >= 1:
-                    print("Cell " + str(self.idx) + " is now immunized.") if debug_level >= 1 else None
+                    print("Cell " + str(self.idx) + " is now immunized.") if debug_level == 1 else None
                     self.status = "immune"
                     self.last_immunized = time()
                     self.led.color = (0, 1, 0)
@@ -75,7 +74,7 @@ class Cell:
                 # if piece was lifted off before being fully inoculated, cell will revert to previous status
                 self.status = self.prev_status
                 print("Cell " + str(
-                    self.idx) + " reverting back to "+self.prev_status) if debug_level >= 2 else None
+                    self.idx) + " reverting back to "+self.prev_status) if debug_level == 1 else None
                 if self.prev_status == "healthy":
                     self.led.color = (1, 1, 1)
                 elif self.prev_status == "infected":
@@ -86,7 +85,7 @@ class Cell:
             elapsed_time_percent = elapsed_time / self.immune_duration
             if elapsed_time_percent >= 1:
                 print("Cell " + str(
-                    self.idx) + " immune duration is over. Reset to healthy.") if debug_level >= 1 else None
+                    self.idx) + " immune duration is over. Reset to healthy.") if debug_level == 1 else None
                 self.status = "healthy"
                 self.led.color = (1, 1, 1)
             else:
@@ -116,8 +115,7 @@ class Cell:
     def check_color(self, sensor, debug_level):
         # reads sensor color data and outputs color as string (red, green, white, invalid)
         sensor_color_rgb = sensor.color_rgb_bytes
-        print("S" + str(self.idx) + " color reading:", sensor_color_rgb,
-              "\t[" + self.prev_color + "]") if debug_level >= 2 else None  # print rgb sensor reading in (r,g,b) values
+        print(str(sensor_color_rgb)+" [" + self.prev_color + "]\t", end="") if debug_level >= 2 else None  # print rgb sensor reading in (r,g,b) values
 
         if self.is_consistent(sensor_color_rgb):
             # checking for red piece
@@ -125,7 +123,7 @@ class Cell:
                     sensor_color_rgb[1] in self.red_limits[1]) and (
                     sensor_color_rgb[2] in self.red_limits[2]):
                 print("S" + str(
-                    self.idx) + " detected virus piece") if self.consistency_count == self.certainty_level and debug_level >= 1 else None
+                    self.idx) + " detected virus piece") if self.consistency_count == self.certainty_level and debug_level == 1 else None
 
                 self.prev_color = "red"
                 return "red"
@@ -135,7 +133,7 @@ class Cell:
                     sensor_color_rgb[1] in self.green_limits[1]) and (
                     sensor_color_rgb[2] in self.green_limits[2]):
                 print("S" + str(
-                    self.idx) + " detected deactivated virus vaccine") if self.consistency_count == self.certainty_level and debug_level >= 1 else None
+                    self.idx) + " detected deactivated virus vaccine") if self.consistency_count == self.certainty_level and debug_level == 1 else None
                 self.prev_color = "green"
                 return "green"
 
@@ -144,7 +142,7 @@ class Cell:
                     sensor_color_rgb[1] in self.white_limits[1]) and (
                     sensor_color_rgb[2] in self.white_limits[2]):
                 print("S" + str(
-                    self.idx) + " detected mRNA messenger piece") if self.consistency_count == self.certainty_level and debug_level >= 1 else None
+                    self.idx) + " detected mRNA messenger piece") if self.consistency_count == self.certainty_level and debug_level == 1 else None
                 self.prev_color = "white"
                 return "white"
 
