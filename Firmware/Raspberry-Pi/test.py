@@ -17,7 +17,7 @@ mpx = adafruit_tca9548a.TCA9548A(i2c) # multiplexer
 mpx_channels = [3,4,5]
 sensorArray = []
 
-ledTest = False
+ledTest = True
 mpxTest = False
 rgbSensorTest = True
 

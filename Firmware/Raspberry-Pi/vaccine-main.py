@@ -53,7 +53,7 @@ def cleanup():
 print("Starting Vaccine Exhibit...")
 startup_check()
 
-debug = False  # set to debug level
+debug = 0  # set to debug level
 
 while True:
     if button.is_pressed:
