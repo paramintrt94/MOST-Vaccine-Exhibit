@@ -1,63 +1,68 @@
 # Importing libraries used to program this script
 from gpiozero import RGBLED, Button
-from colorzero import Color
-from time import sleep
+from time import sleep, time
 from cell import Cell
-from signal import pause
-
-# Logger
-import logging
 
 # Initializing RPI board and I2C ports
 import board
 import busio
-import adafruit_tcs34725
-i2c = busio.I2C(board.SCL, board.SDA)
-print(i2c)
-sensor = adafruit_tcs34725.TCS34725(i2c)
+import adafruit_tcs34725  # RGB Sensor Library
+import adafruit_tca9548a  # Multiplexer Library
+
+i2c = busio.I2C(board.SCL, board.SDA)  # Initiate I2C object
+mpx = adafruit_tca9548a.TCA9548A(i2c)  # multiplexer object
+
+# Specify which channels on the TCA9548A multiplexer are being used
+mpx_channels = [3, 4, 5]
+sensor_array = []
+for mpx_channel in mpx_channels:
+    sensor_array.append(adafruit_tcs34725.TCS34725(mpx[mpx_channel]))
 
 # Specifying RGB Pins using GPIO#   # RGB PIN EQUIVALENT
-led1 = RGBLED(5,6,13)               # RGB LED1 PINS: RED PIN 29, GREEN PIN 31, BLUE PIN 33
-led2 = RGBLED(19,26,12)             # RGB LED2 PINS: RED PIN 35, GREEN PIN 37, BLUE PIN 32
-led3 = RGBLED(16,20,21)             # RGB LED3 PINS: RED PIN 36, GREEN PIN 38, BLUE PIN 40
-ledArray = [led1,led2,led3]
-ledColorCycle = [(1,0,0),(0,1,0),(0,0,1)]
+led1 = RGBLED(5, 6, 13)  # RGB LED1 PINS: RED PIN 29, GREEN PIN 31, BLUE PIN 33
+led2 = RGBLED(19, 26, 12)  # RGB LED2 PINS: RED PIN 35, GREEN PIN 37, BLUE PIN 32
+led3 = RGBLED(16, 20, 21)  # RGB LED3 PINS: RED PIN 36, GREEN PIN 38, BLUE PIN 40
+ledArray = [led1, led2, led3]
 
 # Toggle Switch
 button = Button(4)
 
 # Create Array of "Cells"
 number_of_groups = 3
-cellArray = []
+cell_array = []
 for i in range(number_of_groups):
-    cellArray.append(Cell(ledArray[i]))
+    cell_array.append(Cell(ledArray[i], i))
 
-def startupCheck():
+
+def startup_check():
     # Will turn on each group of LEDs to white and then off
-    for cell in cellArray:
+    for cell in cell_array:
         cell.led.on()
         sleep(0.5)
-    for cell in cellArray:
+    for cell in cell_array:
         cell.led.off()
-        
+
+
 def cleanup():
     # turns off LEDs and resets Cells to healthy
-    for cell in cellArray:
+    for cell in cell_array:
         cell.led.off()
         cell.status = "healthy"
 
+
 print("Starting Vaccine Exhibit...")
-startupCheck()
+startup_check()
+
+debug = 0  # set to debug level
+timed = 0
 
 while True:
-    if(button.is_pressed):
-        for cell in cellArray:
-            print(cell)
-            logging.debug("" + cell)
-            cell.updateStatus(sensor)           # uncomment for production
-            #sleep(3)                           # uncomment for single sensor mode
-            #cell.updateStatus(sensor, True)    # uncomment for debugging
+    if button.is_pressed:
+        for i, cell in enumerate(cell_array):
+            start_process_time = time()
+            cell.update_status(sensor_array[i], debug)
+            print("Process took "+str(time()-start_process_time)+" seconds") if timed else None
+        sleep(0.5) if debug else None
+        print("") if debug > 1 else None
     else:
         cleanup()
-        sleep(5)
-    #sleep(3)
