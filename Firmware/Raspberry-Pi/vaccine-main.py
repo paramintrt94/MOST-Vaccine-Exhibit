@@ -11,17 +11,23 @@ import logging
 # Initializing RPI board and I2C ports
 import board
 import busio
-import adafruit_tcs34725
-i2c = busio.I2C(board.SCL, board.SDA)
-print(i2c)
-sensor = adafruit_tcs34725.TCS34725(i2c)
+import adafruit_tcs34725    # RGB Sensor Library
+import adafruit_tca9548a    # Multiplexer Library
+
+i2c = busio.I2C(board.SCL, board.SDA)   # Initiate I2C object
+mpx = adafruit_tca9548a.TCA9548A(i2c)   # multiplexer object
+
+# Specify which channels on the TCA9548A multiplexer are being used
+mpx_channels = [3,4,5]
+sensorArray = []
+for mpx_channel in mpx_channels:
+    sensorArray.append(adafruit_tcs34725.TCS34725(mpx[mpx_channel]))
 
 # Specifying RGB Pins using GPIO#   # RGB PIN EQUIVALENT
 led1 = RGBLED(5,6,13)               # RGB LED1 PINS: RED PIN 29, GREEN PIN 31, BLUE PIN 33
 led2 = RGBLED(19,26,12)             # RGB LED2 PINS: RED PIN 35, GREEN PIN 37, BLUE PIN 32
 led3 = RGBLED(16,20,21)             # RGB LED3 PINS: RED PIN 36, GREEN PIN 38, BLUE PIN 40
 ledArray = [led1,led2,led3]
-ledColorCycle = [(1,0,0),(0,1,0),(0,0,1)]
 
 # Toggle Switch
 button = Button(4)
@@ -30,7 +36,7 @@ button = Button(4)
 number_of_groups = 3
 cellArray = []
 for i in range(number_of_groups):
-    cellArray.append(Cell(ledArray[i]))
+    cellArray.append(Cell(ledArray[i], i))
 
 def startupCheck():
     # Will turn on each group of LEDs to white and then off
@@ -49,15 +55,12 @@ def cleanup():
 print("Starting Vaccine Exhibit...")
 startupCheck()
 
+debug = False    #set to True to debug
+
 while True:
-    if(button.is_pressed):
-        for cell in cellArray:
-            print(cell)
-            logging.debug("" + cell)
-            cell.updateStatus(sensor)           # uncomment for production
-            #sleep(3)                           # uncomment for single sensor mode
-            #cell.updateStatus(sensor, True)    # uncomment for debugging
+    if button.is_pressed:
+        for i, cell in enumerate(cellArray):
+            cell.updateStatus(sensorArray[i], debug)
+        sleep(1) if debug else None
     else:
         cleanup()
-        sleep(5)
-    #sleep(3)
