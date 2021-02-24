@@ -4,9 +4,9 @@ from time import time
 import math
 
 class Cell:
-    color_sensitivity = 2  # set color sensitivity (higher number allows higher variance in color reading)
-    certainty_level = 5  # set higher value to ignore more ambient lighting when no piece is placed
-    innoc_duration = 3 # set how long it takes to innoculate
+    color_sensitivity = 3  # set color sensitivity (higher number allows higher variance in color reading)
+    certainty_level = 8  # set higher value to ignore more ambient lighting when no piece is placed
+    innoc_duration = 0.1 # set how long it takes to innoculate
     immune_duration = 6  # set to how many seconds before immune reset
     exp_value = 0.1  # set how aggressive to fade color, lower value keeps green on longer
     k_value = math.log(1 / exp_value)
@@ -94,7 +94,7 @@ class Cell:
                 for idx in range(1, len(color_group)):
                     if color_group[idx] != color_group[idx-1]:
                         diff += 1
-            if diff <= self.color_sensitivity:
+            if diff <= 5:
                 self.consistency_count += 1
                 return True
             else:
