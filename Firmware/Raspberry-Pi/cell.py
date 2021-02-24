@@ -6,6 +6,7 @@ import math
 class Cell:
     color_sensitivity = 2  # set color sensitivity (higher number allows higher variance in color reading)
     certainty_level = 5  # set higher value to ignore more ambient lighting when no piece is placed
+    innoc_duration = 3 # set how long it takes to innoculate
     immune_duration = 6  # set to how many seconds before immune reset
     exp_value = 0.1  # set how aggressive to fade color, lower value keeps green on longer
     k_value = math.log(1 / exp_value)
@@ -41,16 +42,33 @@ class Cell:
                 self.status = "infected"
                 self.led.color = (1, 0, 0)
             elif color == "green" or color == "white":
-                print("Cell " + str(self.idx) + " is now immunized.") if debug_level >= 1 else None
-                self.status = "immune"
+                print("Cell " + str(self.idx) + " is being innoculated.") if debug_level >= 1 else None
+                self.status = "innoculating"
                 self.last_immunized = time()
-                self.led.color = (0, 1, 0)
         elif self.status == "infected":
             if color == "green" or color == "white":
-                print("Cell " + str(self.idx) + " is now immunized.") if debug_level >= 1 else None
-                self.status = "immune"
+                self.status = "innoculating"
                 self.last_immunized = time()
-                self.led.color = (0, 1, 0)
+        elif self.status == "innoculating":
+            if color == "green" or color == "white":
+                elapsed_time = time() - self.last_immunized
+                elapsed_time_percent = elapsed_time / self.innoc_duration
+                if elapsed_time_percent >= 1:
+                    print("Cell " + str(self.idx) + " is now immunized.") if debug_level >= 1 else None
+                    self.status = "immune"
+                    self.last_immunized = time()
+                    self.led.color = (0, 1, 0)
+                else:
+                    current_led_red = self.led.value[0]
+                    current_led_blue = self.led.value[2]
+                    if current_led_red > 0:
+                        self.led.color = (1-elapsed_time_percent, 1, 0)
+                    elif current_led_blue > 0:
+                        self.led.color = (0, elapsed_time_percent, 1-elapsed_time_percent)
+            elif color == "red":
+                self.status = "infected"
+                self.led.color = (1,0,0)
+
         elif self.status == "immune":
             elapsed_time = time() - self.last_immunized
             elapsed_time_percent = elapsed_time / self.immune_duration
@@ -71,9 +89,12 @@ class Cell:
         else:
             for i in range(3):
                 self.prev_color_readings[i].pop(0)
-            if (max(self.prev_color_readings[0]) - min(self.prev_color_readings[0])) <= self.color_sensitivity and (
-                    max(self.prev_color_readings[1]) - min(self.prev_color_readings[1])) <= self.color_sensitivity and (
-                    max(self.prev_color_readings[2]) - min(self.prev_color_readings[2])) <= self.color_sensitivity:
+            diff = 0
+            for color_group in self.prev_color_readings:
+                for idx in range(1, len(color_group)):
+                    if color_group[idx] != color_group[idx-1]:
+                        diff += 1
+            if diff <= self.color_sensitivity:
                 self.consistency_count += 1
                 return True
             else:
