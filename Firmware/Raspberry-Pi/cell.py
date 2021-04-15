@@ -4,10 +4,10 @@ from time import time
 import math
 
 class Cell:
-    color_sensitivity = 2  # set color sensitivity (higher number allows higher variance in color reading)
+    color_sensitivity = 1  # set color sensitivity (higher number allows higher variance in color reading)
     max_variation = 5 # set how much variation to allow
     certainty_level = 6  # set higher value to ignore more ambient lighting when no piece is placed
-    inoc_duration = 2.5 # set how long it takes to inoculate
+    inoc_duration = 2 # set how long it takes to inoculate
     immune_duration = 6  # set to how many seconds before immune reset
     exp_value = 0.1  # set how aggressive to fade color, lower value keeps green on longer
     k_value = math.log(1 / exp_value)
@@ -17,9 +17,9 @@ class Cell:
     green_limits = [range(0 - color_sensitivity, 5 + color_sensitivity),
                     range(25 - color_sensitivity, 31 + color_sensitivity),
                     range(17 - color_sensitivity, 29 + color_sensitivity)]
-    white_limits = [range(9 - color_sensitivity, 13 + color_sensitivity),
-                    range(18 - color_sensitivity, 22 + color_sensitivity),
-                    range(14 - color_sensitivity, 22 + color_sensitivity)]
+    white_limits = [range(10 - color_sensitivity, 11 + color_sensitivity),
+                    range(18 - color_sensitivity, 21 + color_sensitivity),
+                    range(15 - color_sensitivity, 22 + color_sensitivity)]
 
     def __init__(self, led, idx):
         self.idx = idx
@@ -36,7 +36,7 @@ class Cell:
     def update_status(self, sensor, debug_level=0):
         # updates cell and LED color to respond to piece being placed on sensor
         color = self.check_color(sensor, debug_level)
-        self.prev_status = self.status
+        # ~ self.prev_status = self.status
         if self.status == "healthy":
             None if self.led.is_lit else self.led.on()
             if color == "red":
@@ -45,10 +45,12 @@ class Cell:
                 self.led.color = (1, 0, 0)
             elif color == "green" or color == "white":
                 print("Cell " + str(self.idx) + " is being inoculated.") if debug_level == 1 else None
+                self.prev_status = "healthy"
                 self.status = "inoculating"
                 self.last_immunized = time()
         elif self.status == "infected":
             if color == "green" or color == "white":
+                self.prev_status = "infected"
                 self.status = "inoculating"
                 self.last_immunized = time()
         elif self.status == "inoculating":
@@ -66,7 +68,9 @@ class Cell:
                     self.last_immunized = time()
                     self.led.color = (0, 1, 0)
                 else:
+                    # ~ print("prev status", self.prev_status)
                     if self.prev_status == "healthy":
+                        # ~ print(self.led.value)
                         self.led.color = (1-elapsed_time_percent, 1, 1-elapsed_time_percent)
                     elif self.prev_status == "infected":
                         self.led.color = (1-elapsed_time_percent, elapsed_time_percent, 0)
