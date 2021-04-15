@@ -17,7 +17,7 @@ mpx = adafruit_tca9548a.TCA9548A(i2c) # multiplexer
 mpx_channels = [3,4,5]
 sensorArray = []
 
-ledTest = True
+ledTest = False
 mpxTest = False
 rgbSensorTest = True
 
@@ -59,4 +59,4 @@ def led_off():
         led.off()
 
 led_off()
-# ~ getColorRange(50)
+# getColorRange(50)
