@@ -37,7 +37,8 @@ class Cell:
         # updates cell and LED color to respond to piece being placed on sensor
         color = self.check_color(sensor, debug_level)
         # ~ self.prev_status = self.status
-        if self.status == "healthy":
+        if  self.status == "healthy":
+            # if LEDs are currently off, turn them on. If on, move on.
             None if self.led.is_lit else self.led.on()
             if color == "red":
                 print("Cell " + str(self.idx) + " is now infected.") if debug_level == 1 else None
@@ -48,11 +49,19 @@ class Cell:
                 self.prev_status = "healthy"
                 self.status = "inoculating"
                 self.last_immunized = time()
+
         elif self.status == "infected":
             if color == "green" or color == "white":
                 self.prev_status = "infected"
                 self.status = "inoculating"
                 self.last_immunized = time()
+
+        elif self.status == "immune":
+            if not(color == "green" or color == "white"):
+                self.prev_status = "immune"
+                self.status = "reverting"
+                self.last_immunized = time()
+
         elif self.status == "inoculating":
             if color == "red":
                 # if virus piece is placed back on sensor while inoculating, cell reverts to being infected
@@ -84,12 +93,13 @@ class Cell:
                 elif self.prev_status == "infected":
                     self.led.color = (1, 0, 0)
 
-        elif self.status == "immune":
+        elif self.status == "reverting":
             elapsed_time = time() - self.last_immunized
             elapsed_time_percent = elapsed_time / self.immune_duration
+            
             if elapsed_time_percent >= 1:
                 print("Cell " + str(
-                    self.idx) + " immune duration is over. Reset to healthy.") if debug_level == 1 else None
+                    self.idx) + " Reset to healthy.") if debug_level == 1 else None
                 self.status = "healthy"
                 self.led.color = (1, 1, 1)
             else:
